@@ -30,7 +30,6 @@ public class WalletServiceImplementation implements WalletService {
             throw new IllegalStateException("Wallet already exists for this user");
         }
 
-
         String accountNumber = createWalletRequest.getUser().getPhoneNumber().substring(1);
 
         Wallet newWallet = new Wallet();
