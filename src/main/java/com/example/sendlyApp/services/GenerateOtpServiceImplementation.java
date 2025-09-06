@@ -24,6 +24,8 @@ public class GenerateOtpServiceImplementation implements GenerateOtpService{
 
     @Override
     public GenerateOtpResponse generateOtpCode(String userEmail) {
+        generateOTPRepository.deleteByUserEmail(userEmail);
+
         GenerateOtp generateOtp = new GenerateOtp();
         String otpCode = String.format("%06d", random.nextInt(1_000_000));
         generateOtp.setOtpCode(otpCode);
