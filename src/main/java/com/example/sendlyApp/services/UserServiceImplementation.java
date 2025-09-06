@@ -28,17 +28,24 @@ public class UserServiceImplementation implements UserService{
     private GenerateOtpService generateOtpService;
     @Autowired
     private EmailServices emailServices;
+    @Autowired
+    private WalletService walletService;
 
     @Override
     public UserRegisterResponse register(UserRegisterRequest userRegisterRequest) {
+        validatePhoneNumber(userRegisterRequest.getPhoneNumber());
+
+        userRegisterRequest.setPhoneNumber(normalizePhoneNumber(userRegisterRequest.getPhoneNumber()));
+
         checkExistingUser(userRegisterRequest);
 
         capitalizeUsername(userRegisterRequest);
 
         User newUser = modelMapper.map(userRegisterRequest, User.class);
+        userRepository.save(newUser);
+
         UserRegisterResponse userRegisterResponse = modelMapper.map(newUser, UserRegisterResponse.class);
         userRegisterResponse.setMessage("Verification code has been sent to your mail");
-        userRepository.save(newUser);
 
         GenerateOtpResponse generatedOtpCode = generateOtpService.generateOtpCode(newUser.getEmail());
         emailServices.sendOtpEmail(newUser.getEmail(), generatedOtpCode.getOtpCode());
@@ -70,16 +77,41 @@ public class UserServiceImplementation implements UserService{
         boolean existingUserByUserName = userRepository.existsByUsername(userRegisterRequest.getUsername());
         boolean existingUserByPhoneNumber = userRepository.existsByPhoneNumber(userRegisterRequest.getPhoneNumber());
 
-        if (existingUserByEmail){
-            throw new IllegalArgumentException("Email Already exist");
+        if (existingUserByEmail) {
+            throw new IllegalArgumentException("Email already exists");
         }
-        if (existingUserByUserName){
-            throw new IllegalArgumentException("Username Already exist");
+        if (existingUserByUserName) {
+            throw new IllegalArgumentException("Username already exists");
         }
-        if (existingUserByPhoneNumber){
-            throw new IllegalArgumentException("PhoneNumber Already exist");
+        if (existingUserByPhoneNumber) {
+            throw new IllegalArgumentException("Phone number already exists");
         }
     }
+
+    private String normalizePhoneNumber(String phoneNumber) {
+        if (phoneNumber.startsWith("+234")) {
+            // Remove +234 and prepend 0
+            return "0" + phoneNumber.substring(4);
+        }
+        return phoneNumber; // already local format
+    }
+
+    private void validatePhoneNumber(String phoneNumber) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            throw new IllegalArgumentException("Phone number is required");
+        }
+
+        if (phoneNumber.startsWith("+234")) {
+            if (!phoneNumber.matches("\\+234\\d{10}")) {
+                throw new IllegalArgumentException("Phone number must be in the format +234XXXXXXXXXX");
+            }
+        } else {
+            if (!phoneNumber.matches("\\d{11}")) {
+                throw new IllegalArgumentException("Phone number must be exactly 11 digits");
+            }
+        }
+    }
+
 
     private static void capitalizeUsername(UserRegisterRequest userRegisterRequest) {
         String username = userRegisterRequest.getUsername();

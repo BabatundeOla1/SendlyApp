@@ -1,7 +1,10 @@
 package com.example.sendlyApp.services;
 
 import com.example.sendlyApp.data.model.GenerateOtp;
+import com.example.sendlyApp.data.model.User;
 import com.example.sendlyApp.data.repositories.GenerateOTPRepo;
+import com.example.sendlyApp.data.repositories.UserRepository;
+import com.example.sendlyApp.dto.request.CreateWalletRequest;
 import com.example.sendlyApp.dto.request.VerifyOtpRequest;
 import com.example.sendlyApp.dto.response.VerifyOtpResponse;
 import com.example.sendlyApp.utils.exceptions.EmailNotFoundException;
@@ -20,6 +23,10 @@ public class EmailServicesImplementation implements EmailServices{
     private JavaMailSender mailSender;
     @Autowired
     private GenerateOTPRepo generateOTPRepo;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private WalletService walletService;
 
 
     public void sendOtpEmail(String email, String otpCode) {
@@ -43,8 +50,17 @@ public class EmailServicesImplementation implements EmailServices{
         GenerateOtp foundOtp = generateOTPRepo.findByUserEmail(verifyOtpRequest.getEmail());
         validateOtp(verifyOtpRequest, foundOtp);
 
+        User foundUser = userRepository.findUserByEmail(foundOtp.getUserEmail());
+
         foundOtp.setUsed(true);
         generateOTPRepo.save(foundOtp);
+        foundUser.setVerified(true);
+        userRepository.save(foundUser);
+
+        CreateWalletRequest verifiedUserWallet = new CreateWalletRequest();
+        verifiedUserWallet.setUser(foundUser);
+
+        walletService.createWallet(verifiedUserWallet);
 
         VerifyOtpResponse response = new VerifyOtpResponse();
         response.setVerificationResponse("Verification Successful");

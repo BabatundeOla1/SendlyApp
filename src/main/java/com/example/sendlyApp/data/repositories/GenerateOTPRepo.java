@@ -11,4 +11,6 @@ public interface GenerateOTPRepo extends MongoRepository<GenerateOtp, String> {
     Optional<GenerateOtp> findByOtpCode(String code);
     GenerateOtp findByUserEmail(String email);
     void deleteByExpirationTimeBefore(LocalDateTime expirationTime);
+    void deleteByUserEmail(String email);
+
 }

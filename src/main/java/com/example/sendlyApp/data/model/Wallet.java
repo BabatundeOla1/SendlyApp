@@ -9,8 +9,7 @@ import java.math.BigDecimal;
 public class Wallet {
     @Id
     private String id;
-    private BigDecimal balance;
+    private BigDecimal balance = BigDecimal.ZERO;
     private String accountNumber;
     private String username;
-
 }

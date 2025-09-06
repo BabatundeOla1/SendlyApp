@@ -37,6 +37,7 @@ class EmailServicesImplementationTest {
     private JavaMailSender mailSender;
 
 
+
 //    @BeforeEach
 //    void tearDown(){
 //        generateOTPRepo.deleteAll();
@@ -53,16 +54,43 @@ class EmailServicesImplementationTest {
 
     }
 
+//    @Test
+//    void testThatUserCanVerifyOtp() {
+//        String email = "olatheezy@gmail.com";
+//        String otpCode = "343639";
+//
+//        GenerateOtp otp = new GenerateOtp();
+//        otp.setUserEmail(email);
+//        otp.setOtpCode(otpCode);
+//        otp.setExpirationTime(LocalDateTime.now().plusMinutes(5));
+//        otp.setUsed(false);
+//        generateOTPRepo.save(otp);
+//
+//        VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
+//        verifyOtpRequest.setEmail(email);
+//        verifyOtpRequest.setOtpCode(otpCode);
+//
+//        VerifyOtpResponse verifyOtpResponse = emailServices.verifyOtp(verifyOtpRequest);
+//
+//        assertNotNull(verifyOtpResponse);
+//        assertEquals("Verification Successful", verifyOtpResponse.getVerificationResponse());
+//    }
+
     @Test
-    void testThatUserCanVerifyOtp(){
-            String email = "olatheezy@gmail.com";
+    void testThatUserCanVerifyOtp() {
+        String email = "olatheezy@gmail.com";
 
-            VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
-            verifyOtpRequest.setEmail(email);
-            verifyOtpRequest.setOtpCode("343639");
+        // Generate OTP for email
+        GenerateOtpResponse otpResponse = generateOtpService.generateOtpCode(email);
 
-            VerifyOtpResponse verifyOtpResponse = emailServices.verifyOtp(verifyOtpRequest);
+        VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
+        verifyOtpRequest.setEmail(email);
+        verifyOtpRequest.setOtpCode(otpResponse.getOtpCode());
 
-            assertEquals("Verification Successful", verifyOtpResponse.getVerificationResponse());
-        }
+        VerifyOtpResponse verifyOtpResponse = emailServices.verifyOtp(verifyOtpRequest);
+
+        assertNotNull(verifyOtpResponse);
+        assertEquals("Verification Successful", verifyOtpResponse.getVerificationResponse());
+    }
+
 }
